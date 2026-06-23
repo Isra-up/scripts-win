@@ -1,0 +1,486 @@
+<title>Guía de Sincronización de Memoria — Claude Code</title>
+<style>
+  :root {
+    --ground:   #F7F4EE;
+    --text:     #1C1B18;
+    --accent:   #C4830A;
+    --muted:    #6B5E4E;
+    --surface:  #EDEAE1;
+    --border:   #D4CFC4;
+    --col-label: 160px;
+    --gap:      28px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: grid;
+    grid-template-columns: var(--col-label) 1fr;
+    gap: 0 var(--gap);
+    border-top: 3px solid var(--text);
+    padding-top: 20px;
+    margin-bottom: 52px;
+  }
+  .header-brand {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 6px;
+    text-align: right;
+  }
+  .header-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 32px;
+    font-weight: normal;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .header-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.01em;
+  }
+  .header-accent-bar {
+    grid-column: 2;
+    height: 3px;
+    background: var(--accent);
+    width: 64px;
+    margin-top: 14px;
+  }
+
+  /* ── Row: label + content ── */
+  .row {
+    display: grid;
+    grid-template-columns: var(--col-label) 1fr;
+    gap: 0 var(--gap);
+    margin-bottom: 40px;
+  }
+  .row + .row { border-top: 1px solid var(--border); padding-top: 40px; }
+
+  .label {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: right;
+    padding-top: 3px;
+    line-height: 1.4;
+  }
+  .label-sub {
+    display: block;
+    font-family: system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .content h2 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 21px;
+    font-weight: normal;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .content p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 14px;
+    max-width: 480px;
+  }
+
+  /* ── Code blocks ── */
+  .cmd-block {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-family: 'Menlo', 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .cmd-block .prompt {
+    color: var(--accent);
+    user-select: none;
+  }
+  .cmd-block .cmd { color: var(--text); }
+  .cmd-block .comment {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .cmd-block .hl { color: var(--accent); font-weight: 600; }
+
+  /* ── Inline code ── */
+  code {
+    font-family: 'Menlo', 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  /* ── Steps ── */
+  .steps { list-style: none; counter-reset: step; margin: 12px 0; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--text);
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: Georgia, serif;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    min-width: 22px;
+    padding-top: 2px;
+  }
+
+  /* ── Table ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 10px;
+  }
+  .ref-table th {
+    font-family: Georgia, serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    font-weight: normal;
+  }
+  .ref-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .ref-table td:first-child { color: var(--muted); font-size: 13px; }
+  .ref-table td code { font-size: 11.5px; }
+  .ref-table tr:last-child td { border-bottom: none; }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .badge-ok { background: #DFF0D2; color: #3A6B1A; }
+  .badge-pending { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── Diagram ── */
+  .diagram {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .diagram-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: 'Menlo', monospace;
+    font-size: 12px;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.4;
+  }
+  .diagram-node span {
+    display: block;
+    font-family: system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .diagram-arrow {
+    color: var(--accent);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* ── Note ── */
+  .note {
+    background: #FEF4E2;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+  .note strong { color: var(--accent); }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+    padding-top: 16px;
+    display: grid;
+    grid-template-columns: var(--col-label) 1fr;
+    gap: 0 var(--gap);
+    font-size: 11px;
+    color: var(--border);
+  }
+  .footer-right { color: var(--muted); }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 24px 20px; font-size: 13px; }
+    .header { margin-bottom: 36px; }
+    .row { margin-bottom: 28px; }
+    .row + .row { padding-top: 28px; }
+    .cmd-block { font-size: 11.5px; padding: 12px 14px; }
+    h2 { font-size: 18px !important; }
+    .diagram { gap: 6px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-brand">
+    Claude Code<br>Isra-up / claude-memory
+  </div>
+  <div>
+    <div class="header-title">Sincronización<br>de Memoria</div>
+    <div class="header-subtitle">Guía de referencia — dos equipos, un repositorio</div>
+    <div class="header-accent-bar"></div>
+  </div>
+</div>
+
+<!-- Sección 1: Cómo funciona -->
+<div class="row">
+  <div class="label">
+    Concepto
+    <span class="label-sub">Leer una vez</span>
+  </div>
+  <div class="content">
+    <h2>Cómo funciona</h2>
+    <p>La memoria de Claude Code es una carpeta local. En cada equipo configurado, esa carpeta es en realidad un symlink que apunta al repo privado en GitHub. Claude escribe ahí directamente — tú decides cuándo sincronizar.</p>
+
+    <div class="diagram">
+      <div class="diagram-node">
+        <span>Claude Code</span>
+        ~/.claude/.../memory
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node">
+        <span>Symlink</span>
+        ~/proyectos/<br>claude-memory
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node">
+        <span>GitHub (privado)</span>
+        Isra-up/<br>claude-memory
+      </div>
+      <div class="diagram-arrow">→</div>
+      <div class="diagram-node">
+        <span>Otro equipo</span>
+        ~/proyectos/<br>claude-memory
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Regla:</strong> Claude escribe solo. Tú sincronizas manualmente al terminar y al iniciar cada sesión de trabajo.
+    </div>
+  </div>
+</div>
+
+<!-- Sección 2: Terminar sesión -->
+<div class="row">
+  <div class="label">
+    Al terminar
+    <span class="label-sub">En cualquier equipo</span>
+  </div>
+  <div class="content">
+    <h2>Guardar y subir la memoria</h2>
+    <p>Ejecuta esto en la terminal antes de cerrar Claude Code o apagar el equipo.</p>
+
+    <div class="cmd-block">
+      <div><span class="prompt">$ </span><span class="cmd">cd ~/proyectos/claude-memory</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">git add .</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">git commit -m <span class="hl">"sync memoria"</span></span></div>
+      <div><span class="prompt">$ </span><span class="cmd">git push</span></div>
+    </div>
+
+    <p>Si no hubo cambios en la memoria durante la sesión, Git te avisará — no pasa nada, no se crea un commit vacío.</p>
+  </div>
+</div>
+
+<!-- Sección 3: Iniciar sesión -->
+<div class="row">
+  <div class="label">
+    Al iniciar
+    <span class="label-sub">En el otro equipo</span>
+  </div>
+  <div class="content">
+    <h2>Traer la memoria actualizada</h2>
+    <p>Antes de abrir Claude Code en el equipo donde vas a trabajar ahora.</p>
+
+    <div class="cmd-block">
+      <div><span class="prompt">$ </span><span class="cmd">cd ~/proyectos/claude-memory</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">git pull</span></div>
+    </div>
+
+    <div class="note">
+      <strong>Orden importa:</strong> siempre sube (<code>git push</code>) en el equipo donde terminaste <em>antes</em> de bajar (<code>git pull</code>) en el equipo donde vas a continuar.
+    </div>
+  </div>
+</div>
+
+<!-- Sección 4: Setup equipo nuevo -->
+<div class="row">
+  <div class="label">
+    Setup inicial
+    <span class="label-sub">Una sola vez por equipo</span>
+  </div>
+  <div class="content">
+    <h2>Configurar un equipo nuevo</h2>
+    <p>Realiza estos pasos solo la primera vez en cada equipo.</p>
+
+    <ul class="steps">
+      <li>Clonar el repositorio de memoria en el equipo</li>
+      <li>Abrir Claude Code una vez para que cree su estructura de carpetas</li>
+      <li>Ver qué carpeta creó Claude — anota el nombre exacto</li>
+      <li>Reemplazar esa carpeta por un symlink al repo</li>
+    </ul>
+
+    <div class="cmd-block">
+      <div><span class="comment"># 1. Clonar el repo</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">git clone git@github.com:Isra-up/claude-memory.git ~/proyectos/claude-memory</span></div>
+      <br>
+      <div><span class="comment"># 2. Abrir Claude Code una vez, luego ver qué carpeta creó</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">ls ~/.claude/projects/</span></div>
+      <div><span class="comment">#    Verás algo como: -home-miusuario-carpeta</span></div>
+      <br>
+      <div><span class="comment"># 3. Eliminar la carpeta de memoria y crear el symlink</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">rm -rf ~/.claude/projects/<span class="hl">&lt;carpeta&gt;</span>/memory</span></div>
+      <div><span class="prompt">$ </span><span class="cmd">ln -s ~/proyectos/claude-memory ~/.claude/projects/<span class="hl">&lt;carpeta&gt;</span>/memory</span></div>
+    </div>
+
+    <div class="note">
+      <strong>Verifica:</strong> <code>ls ~/.claude/projects/&lt;carpeta&gt;/memory</code> debe mostrar los archivos del repo, no una carpeta vacía.
+    </div>
+  </div>
+</div>
+
+<!-- Sección 5: Referencia rápida -->
+<div class="row">
+  <div class="label">
+    Referencia
+    <span class="label-sub">Cheat sheet</span>
+  </div>
+  <div class="content">
+    <h2>Comandos de uso diario</h2>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Momento</th>
+          <th>Comando</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Terminar sesión</td>
+          <td><code>cd ~/proyectos/claude-memory && git add . && git commit -m "sync" && git push</code></td>
+        </tr>
+        <tr>
+          <td>Iniciar en otro equipo</td>
+          <td><code>cd ~/proyectos/claude-memory && git pull</code></td>
+        </tr>
+        <tr>
+          <td>Ver qué cambió</td>
+          <td><code>git -C ~/proyectos/claude-memory status</code></td>
+        </tr>
+        <tr>
+          <td>Ver historial</td>
+          <td><code>git -C ~/proyectos/claude-memory log --oneline -10</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sección 6: Estado de equipos -->
+<div class="row">
+  <div class="label">
+    Equipos
+    <span class="label-sub">Estado actual</span>
+  </div>
+  <div class="content">
+    <h2>Equipos registrados</h2>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th>Uso</th>
+          <th>Usuario</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Latitude E7470</td>
+          <td>Casa</td>
+          <td><code>latitude_e7470</code></td>
+          <td><span class="badge badge-ok">Configurado</span></td>
+        </tr>
+        <tr>
+          <td>Equipo trabajo</td>
+          <td>Trabajo</td>
+          <td>—</td>
+          <td><span class="badge badge-pending">Pendiente</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div></div>
+  <div class="footer-right">
+    Proyecto claude-memory · github.com/Isra-up/claude-memory · Generado 2026-06-23
+  </div>
+</div>

@@ -1,0 +1,544 @@
+<title>Guía de Instalación — Cola IMPRESIONUP</title>
+<style>
+  :root {
+    --ground:   #FFFFFF;
+    --text:     #1A1A2E;
+    --accent:   #0057B8;
+    --warn:     #D94F0C;
+    --ok:       #1A6E35;
+    --muted:    #5A6175;
+    --surface:  #F2F5F9;
+    --border:   #DDE3EC;
+    --term-bg:  #0D1117;
+    --term-txt: #E6EDF3;
+    --term-ok:  #3FB950;
+    --term-acc: #F0A030;
+    --term-mut: #7D8590;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 36px 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+  }
+  .header-eyebrow {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .header-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .header-meta {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-meta span::before { content: "· "; color: var(--border); }
+  .header-meta span:first-child::before { content: ""; }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 40px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Checklist ── */
+  .checklist {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    margin-bottom: 8px;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    margin-top: 2px;
+    display: inline-block;
+  }
+
+  /* ── USB structure ── */
+  .usb-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.85;
+    color: var(--text);
+    margin: 12px 0;
+  }
+  .usb-tree .folder { color: var(--accent); font-weight: 600; }
+  .usb-tree .file-main { color: var(--text); font-weight: 600; }
+  .usb-tree .file { color: var(--muted); }
+  .usb-tree .note-inline {
+    color: var(--muted);
+    font-style: italic;
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+  }
+
+  /* ── Steps ── */
+  .steps { margin: 4px 0 8px; }
+
+  .step {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 0 18px;
+    margin-bottom: 24px;
+    align-items: start;
+  }
+  .step-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    text-align: right;
+    padding-top: 2px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .step-body {}
+  .step-action {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .step-detail {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .step-detail strong { color: var(--text); }
+
+  /* ── Command pill ── */
+  .cmd {
+    display: inline-flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--text);
+    margin: 6px 0;
+    gap: 8px;
+    flex-wrap: wrap;
+    word-break: break-all;
+  }
+  .cmd-prompt { color: var(--accent); font-weight: 700; }
+
+  /* ── Warning / Note ── */
+  .warn-box {
+    background: #FFF4F0;
+    border-left: 3px solid var(--warn);
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 10px 0;
+  }
+  .warn-box .warn-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warn);
+    margin-bottom: 4px;
+  }
+
+  .note-box {
+    background: #EEF4FF;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 10px 0;
+  }
+  .note-box .note-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  /* ── Terminal output preview ── */
+  .terminal {
+    background: var(--term-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 14px 0;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.75;
+  }
+  .terminal-bar {
+    background: #21262D;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .terminal-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .terminal-dot.red    { background: #FF5F57; }
+  .terminal-dot.yellow { background: #FEBC2E; }
+  .terminal-dot.green  { background: #28C840; }
+  .terminal-title {
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    color: var(--term-mut);
+    margin-left: 8px;
+    letter-spacing: 0.03em;
+  }
+  .terminal-body {
+    padding: 16px 20px;
+    color: var(--term-txt);
+  }
+  .t-prompt { color: var(--term-acc); }
+  .t-ok     { color: var(--term-ok);  font-weight: 600; }
+  .t-warn   { color: var(--term-acc); }
+  .t-success{ color: var(--term-ok);  font-weight: 700; }
+  .t-mut    { color: var(--term-mut); }
+  .t-line   { display: block; }
+
+  /* ── Troubleshooting table ── */
+  .trouble-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .trouble-table th {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    background: var(--surface);
+  }
+  .trouble-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  .trouble-table td:first-child {
+    font-family: 'Menlo', monospace;
+    font-size: 11.5px;
+    color: var(--warn);
+    max-width: 220px;
+  }
+  .trouble-table tr:last-child td { border-bottom: none; }
+
+  /* ── Final checklist ── */
+  .final-check {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 12px;
+  }
+  .final-check h3 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .final-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .final-item:last-child { border-bottom: none; }
+  .final-box {
+    width: 18px; height: 18px; min-width: 18px;
+    border: 2px solid var(--border);
+    border-radius: 3px;
+    margin-top: 1px;
+  }
+  .final-item-text { flex: 1; color: var(--text); }
+  .final-item-text small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    margin-top: 56px;
+    padding-top: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 20px 24px; font-size: 13px; }
+    .step-num { font-size: 24px; }
+    .terminal { border-radius: 4px; }
+    .final-check { border-radius: 4px; }
+    .section-title { margin-top: 28px; }
+    .step { margin-bottom: 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-eyebrow">Tecnologías de la Información · Universidad Panamericana</div>
+  <div class="header-title">Guía de Instalación — Cola IMPRESIONUP</div>
+  <div class="header-meta">
+    <span>Kyocera TASKalfa MZ2501ci KX</span>
+    <span>Windows 11</span>
+    <span>IP: 10.1.6.63</span>
+    <span>Versión 1.0 · 2026-06-23</span>
+  </div>
+</div>
+
+<!-- Antes de empezar -->
+<div class="section-title">Antes de empezar</div>
+<ul class="checklist">
+  <li><span class="checkbox"></span>USB con la carpeta <strong>IMPRESIONUP</strong> preparada</li>
+  <li><span class="checkbox"></span>Acceso de administrador en el equipo</li>
+  <li><span class="checkbox"></span>El equipo conectado a la red de la UP</li>
+  <li><span class="checkbox"></span>Windows 11 instalado en el equipo</li>
+</ul>
+
+<!-- Estructura USB -->
+<div class="section-title">Estructura de la USB</div>
+<p style="color:var(--muted);font-size:13px;margin-bottom:10px;">La USB debe tener esta estructura exacta. No muevas ni renombres ningún archivo.</p>
+<div class="usb-tree">
+  <div><span class="folder">IMPRESIONUP\</span></div>
+  <div>&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file-main">install-impresionup.ps1</span> &nbsp;<span class="note-inline">← el script</span></div>
+  <div>&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="folder">Kyocera_64bit\</span> &nbsp;<span class="note-inline">← carpeta completa de drivers</span></div>
+  <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">OEMSETUP.INF</span></div>
+  <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">(resto de archivos del driver)</span></div>
+</div>
+
+<!-- Pasos -->
+<div class="section-title">Pasos de instalación</div>
+<div class="steps">
+
+  <div class="step">
+    <div class="step-num">01</div>
+    <div class="step-body">
+      <div class="step-action">Inserta la USB en el equipo</div>
+      <div class="step-detail">Anota la letra de unidad que Windows le asigna. La verás en el Explorador de archivos — puede ser <strong>D:</strong>, <strong>E:</strong> u otra letra.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">02</div>
+    <div class="step-body">
+      <div class="step-action">Abre PowerShell como Administrador</div>
+      <div class="step-detail">Presiona <strong>Inicio</strong>, escribe <strong>PowerShell</strong>, haz clic derecho sobre el resultado y selecciona <strong>"Ejecutar como administrador"</strong>. Confirma en el aviso de UAC.</div>
+      <div class="warn-box">
+        <div class="warn-label">Importante</div>
+        Debe decir "Administrador" en la barra de título de la ventana. Si no lo dice, ciérrala y repite este paso.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">03</div>
+    <div class="step-body">
+      <div class="step-action">Navega a la carpeta del script en la USB</div>
+      <div class="step-detail">Reemplaza <strong>D:</strong> por la letra que viste en el paso 01.</div>
+      <div class="cmd"><span class="cmd-prompt">PS&gt;</span> cd D:\IMPRESIONUP</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">04</div>
+    <div class="step-body">
+      <div class="step-action">Ejecuta el script</div>
+      <div class="cmd"><span class="cmd-prompt">PS&gt;</span> .\install-impresionup.ps1</div>
+      <div class="warn-box">
+        <div class="warn-label">Si aparece error de política de ejecución</div>
+        Ejecuta primero el siguiente comando, responde <strong>S</strong> cuando pregunte, y luego vuelve a correr el script del paso anterior.
+        <div class="cmd" style="margin-top:8px;"><span class="cmd-prompt">PS&gt;</span> Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">05</div>
+    <div class="step-body">
+      <div class="step-action">Verifica que la impresora quedó instalada</div>
+      <div class="step-detail">Ve a <strong>Configuración → Bluetooth y dispositivos → Impresoras y escáneres</strong>. Debe aparecer <strong>IMPRESIONUP</strong> en la lista.</div>
+      <div class="note-box">
+        <div class="note-label">Prueba de impresión</div>
+        Haz clic en <strong>IMPRESIONUP</strong> → <strong>Propiedades de la impresora</strong> → botón <strong>Imprimir página de prueba</strong>. Si imprime, la instalación fue exitosa.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Terminal output -->
+<div class="section-title">Lo que verás en pantalla</div>
+<p style="color:var(--muted);font-size:13px;margin-bottom:10px;">Así debe verse la salida del script cuando la instalación es exitosa. Compara con lo que aparece en tu pantalla.</p>
+<div class="terminal">
+  <div class="terminal-bar">
+    <div class="terminal-dot red"></div>
+    <div class="terminal-dot yellow"></div>
+    <div class="terminal-dot green"></div>
+    <div class="terminal-title">Windows PowerShell — Administrador</div>
+  </div>
+  <div class="terminal-body">
+    <span class="t-line"><span class="t-prompt">&gt;&gt;</span> Verificando archivo de driver...</span>
+    <span class="t-line">&nbsp;&nbsp;&nbsp;<span class="t-ok">OK</span></span>
+    <span class="t-line">&nbsp;</span>
+    <span class="t-line"><span class="t-prompt">&gt;&gt;</span> Instalando driver Kyocera en Windows (pnputil)...</span>
+    <span class="t-line">&nbsp;&nbsp;&nbsp;<span class="t-warn">AVISO: Driver ya existente o advertencia — continuando.</span></span>
+    <span class="t-line">&nbsp;</span>
+    <span class="t-line"><span class="t-prompt">&gt;&gt;</span> Creando puerto LPR 'IMPRESIONUP' -&gt; 10.1.6.63 ...</span>
+    <span class="t-line">&nbsp;&nbsp;&nbsp;<span class="t-ok">OK</span></span>
+    <span class="t-line">&nbsp;</span>
+    <span class="t-line"><span class="t-prompt">&gt;&gt;</span> Verificando instalación previa de 'IMPRESIONUP'...</span>
+    <span class="t-line">&nbsp;&nbsp;&nbsp;<span class="t-ok">OK</span></span>
+    <span class="t-line">&nbsp;</span>
+    <span class="t-line"><span class="t-prompt">&gt;&gt;</span> Agregando impresora 'IMPRESIONUP'...</span>
+    <span class="t-line">&nbsp;&nbsp;&nbsp;<span class="t-ok">OK</span></span>
+    <span class="t-line">&nbsp;</span>
+    <span class="t-line t-success">============================================</span>
+    <span class="t-line t-success">&nbsp;&nbsp;IMPRESIONUP instalada correctamente.</span>
+    <span class="t-line t-success">&nbsp;&nbsp;IP: 10.1.6.63  |  Puerto LPR: IMPRESIONUP</span>
+    <span class="t-line t-success">============================================</span>
+  </div>
+</div>
+<div class="note-box">
+  <div class="note-label">Normal</div>
+  El mensaje <em>"Driver ya existente o advertencia — continuando"</em> en amarillo es normal — significa que el driver ya estaba en Windows o que pnputil dio un aviso no crítico. El proceso continúa sin problema.
+</div>
+
+<!-- Troubleshooting -->
+<div class="section-title">Solución de problemas</div>
+<table class="trouble-table">
+  <thead>
+    <tr>
+      <th>Mensaje de error</th>
+      <th>Causa probable</th>
+      <th>Qué hacer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ERROR: No se encontró: ...\OEMSETUP.INF</td>
+      <td>La carpeta Kyocera_64bit no está junto al script o tiene otro nombre</td>
+      <td>Verifica la estructura de la USB. La carpeta debe llamarse exactamente <strong>Kyocera_64bit</strong>.</td>
+    </tr>
+    <tr>
+      <td>ERROR: Ejecuta el script como Administrador</td>
+      <td>PowerShell no tiene privilegios de administrador</td>
+      <td>Cierra PowerShell y ábrelo de nuevo con clic derecho → <strong>Ejecutar como administrador</strong>.</td>
+    </tr>
+    <tr>
+      <td>El término '.\install...' no se reconoce</td>
+      <td>No estás en la carpeta correcta de la USB</td>
+      <td>Ejecuta <code>cd D:\IMPRESIONUP</code> (ajusta la letra) y vuelve a intentar.</td>
+    </tr>
+    <tr>
+      <td>ERROR: en el puerto o Add-Printer</td>
+      <td>El puerto o impresora anterior no se pudo eliminar</td>
+      <td>Ve a <strong>Panel de control → Dispositivos e impresoras</strong>, elimina manualmente cualquier entrada IMPRESIONUP y vuelve a ejecutar el script.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Verificación final -->
+<div class="section-title">Verificación final</div>
+<div class="final-check">
+  <h3>Marca cada punto antes de pasar al siguiente equipo</h3>
+  <div class="final-item">
+    <div class="final-box"></div>
+    <div class="final-item-text">
+      IMPRESIONUP aparece en Configuración → Impresoras y escáneres
+      <small>Si no aparece, el script terminó con error — revisa la sección de problemas.</small>
+    </div>
+  </div>
+  <div class="final-item">
+    <div class="final-box"></div>
+    <div class="final-item-text">
+      La página de prueba se imprimió correctamente
+      <small>Propiedades de la impresora → Imprimir página de prueba.</small>
+    </div>
+  </div>
+  <div class="final-item">
+    <div class="final-box"></div>
+    <div class="final-item-text">
+      El script terminó con el mensaje verde de éxito
+      <small>"IMPRESIONUP instalada correctamente."</small>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <span>TI · Universidad Panamericana · install-impresionup.ps1 v1.0</span>
+  <span>github.com/Isra-up/scripts-win</span>
+</div>
