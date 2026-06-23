@@ -9,10 +9,9 @@
 
 # ── RUTA AL DRIVER (relativa al script — funciona desde USB o escritorio) ───────
 # Estructura esperada junto al script:
-#   drivers\
-#     Kyocera\
-#       OEMSETUP.INF  (y demás archivos del driver)
-$DriverInfPath = Join-Path $PSScriptRoot "drivers\Kyocera\OEMSETUP.INF"
+#   Kyocera_64bit\
+#     OEMSETUP.INF  (y demás archivos del driver — copiar la carpeta completa)
+$DriverInfPath = Join-Path $PSScriptRoot "Kyocera_64bit\OEMSETUP.INF"
 # ───────────────────────────────────────────────────────────────────────────────
 
 $PrinterIP   = "10.1.6.63"

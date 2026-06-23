@@ -15,6 +15,20 @@ scripts-win/
 └── docs/         # Notas, referencias y guías de uso
 ```
 
+## Scripts disponibles
+
+### `up/install-impresionup.ps1`
+Instala la cola de impresión IMPRESIONUP (Kyocera TASKalfa MZ2501ci KX) en Windows 11.
+
+**Estructura en USB para ejecutar:**
+```
+IMPRESIONUP\
+├── install-impresionup.ps1
+└── Kyocera_64bit\          ← copiar la carpeta completa de drivers
+    ├── OEMSETUP.INF
+    └── (resto de archivos)
+```
+
 ## Convenciones
 
 - Scripts PowerShell: `.ps1`, nombrados en `kebab-case`
