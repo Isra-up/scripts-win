@@ -17,7 +17,7 @@ $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
 $DriverInfPath = Join-Path $env:KACE_DEPENDENCY_DIR "OEMSETUP.INF"
 
 # Log por equipo
-$LogDir  = "C:\KaceScripts\logs"
+$LogDir  = "C:\ProgramData\KaceScripts\logs"
 $LogFile = "$LogDir\impresionup_$($env:COMPUTERNAME)_$(Get-Date -Format 'yyyyMMdd_HHmm').log"
 # ───────────────────────────────────────────────────────────────────────────────
 

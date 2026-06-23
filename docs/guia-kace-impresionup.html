@@ -1,0 +1,539 @@
+<title>Guía KACE — Despliegue IMPRESIONUP</title>
+<style>
+  :root {
+    --ground:   #F8F9FC;
+    --text:     #1E2235;
+    --accent:   #5550E8;
+    --ok:       #1E7E34;
+    --warn:     #C4570A;
+    --muted:    #5A6175;
+    --surface:  #ECEEF5;
+    --border:   #D5D9E8;
+    --copy-bg:  #1E2235;
+    --copy-txt: #E8EAF4;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 44px 36px 72px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+  }
+  .header-icon {
+    width: 48px; height: 48px; min-width: 48px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .header-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .header-title {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .header-meta {
+    font-size: 12.5px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-meta span + span::before { content: "·"; margin-right: 16px; color: var(--border); }
+  .header-meta span + span { margin-left: -16px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 36px; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Breadcrumb nav path ── */
+  .nav-path {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .nav-step {
+    color: var(--text);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .nav-step.active {
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 7px;
+  }
+  .nav-sep { color: var(--border); font-size: 14px; margin: 0 1px; }
+
+  /* ── Step ── */
+  .step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 0 16px;
+    margin-bottom: 20px;
+    align-items: start;
+  }
+  .step-num {
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .step-action {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+  .step-detail {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .step-detail strong { color: var(--text); }
+
+  /* ── Copy block (valor que se copia exacto) ── */
+  .copy-block {
+    background: var(--copy-bg);
+    color: var(--copy-txt);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin: 8px 0;
+    word-break: break-all;
+    position: relative;
+  }
+  .copy-block .copy-label {
+    font-family: system-ui, sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7B82A8;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .copy-block .val { color: #A8D8FF; }
+  .copy-block .var { color: #FFD080; }
+  .copy-block .comment { color: #5A6380; font-style: italic; }
+
+  /* ── Config table ── */
+  .config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 10px 0;
+  }
+  .config-table th {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 7px 12px;
+    border-bottom: 2px solid var(--border);
+    background: var(--surface);
+  }
+  .config-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .config-table td:first-child {
+    color: var(--muted);
+    white-space: nowrap;
+    font-size: 12.5px;
+  }
+  .config-table td code {
+    font-family: 'Menlo', monospace;
+    font-size: 11.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--text);
+  }
+  .config-table tr:last-child td { border-bottom: none; }
+  .config-table .required {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── Note / Warn ── */
+  .note {
+    background: #EEECFF;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 10px 0;
+  }
+  .note .label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .warn {
+    background: #FEF3EC;
+    border-left: 3px solid var(--warn);
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    margin: 10px 0;
+  }
+  .warn .label { color: var(--warn); font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px; }
+
+  /* ── File list ── */
+  .file-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'Menlo', monospace;
+    font-size: 12px;
+    line-height: 1.9;
+    margin: 8px 0;
+    color: var(--muted);
+  }
+  .file-list .f-main { color: var(--text); font-weight: 700; }
+  .file-list .f-note { font-family: system-ui; font-size: 11px; color: var(--muted); font-style: italic; }
+
+  /* ── Log preview ── */
+  .log-preview {
+    background: #111622;
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: 'Menlo', monospace;
+    font-size: 11.5px;
+    line-height: 1.8;
+    margin: 10px 0;
+    color: #9BA8C0;
+    overflow-x: auto;
+  }
+  .log-preview .ok   { color: #3FB950; }
+  .log-preview .err  { color: #F85149; }
+  .log-preview .info { color: #9BA8C0; }
+  .log-preview .time { color: #484F5E; }
+
+  /* ── Exit codes ── */
+  .exit-codes {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  .exit-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 180px;
+  }
+  .exit-code {
+    font-family: 'Menlo', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .exit-code.ok  { color: var(--ok); }
+  .exit-code.err { color: #E53E3E; }
+  .exit-desc { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    margin-top: 52px;
+    padding-top: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media print {
+    body { padding: 20px 24px; font-size: 13px; }
+    .nav-path { break-inside: avoid; }
+    .step { break-inside: avoid; margin-bottom: 14px; }
+    .copy-block { font-size: 11px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-icon">⚙️</div>
+  <div>
+    <div class="header-eyebrow">Quest KACE SMA · Online KScript</div>
+    <div class="header-title">Despliegue de Cola IMPRESIONUP</div>
+    <div class="header-meta">
+      <span>Kyocera TASKalfa MZ2501ci KX</span>
+      <span>IP 10.1.6.63</span>
+      <span>Script v1.0 · 2026-06-23</span>
+    </div>
+  </div>
+</div>
+
+<!-- Requisitos -->
+<div class="section">
+  <div class="section-label">Antes de empezar</div>
+  <div class="config-table" style="display:block;">
+    <table class="config-table">
+      <thead><tr><th>Qué necesitas</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>Script PowerShell</td><td><code>install-impresionup-kace.ps1</code> <span class="required">requerido</span></td></tr>
+        <tr><td>Driver Kyocera</td><td>Todos los archivos de la carpeta <code>Kyocera_64bit\</code> incluyendo <code>OEMSETUP.INF</code> <span class="required">requerido</span></td></tr>
+        <tr><td>Acceso a KACE</td><td>Cuenta con permisos de administrador en la consola KACE SMA</td></tr>
+        <tr><td>Equipos objetivo</td><td>Etiqueta de máquina creada en KACE con los equipos donde se instalará</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Paso 1: Crear el script -->
+<div class="section">
+  <div class="section-label">Paso 1 — Crear el script en KACE</div>
+  <div class="nav-path">
+    <span class="nav-step">Scripting</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step">Scripts</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step">Seleccionar acción</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Nueva</span>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px;">Llena los campos del formulario con estos valores exactos:</p>
+  <table class="config-table">
+    <thead><tr><th>Campo en KACE</th><th>Valor a ingresar</th></tr></thead>
+    <tbody>
+      <tr><td>Nombre</td><td><code>Install-IMPRESIONUP</code></td></tr>
+      <tr><td>Habilitado</td><td><code>Sí</code></td></tr>
+      <tr><td>Tipo</td><td><code>Online KScript</code></td></tr>
+      <tr><td>Sistema operativo</td><td><code>Windows</code></td></tr>
+      <tr><td>Notas</td><td><code>Instala cola IMPRESIONUP — Kyocera TASKalfa MZ2501ci KX — IP 10.1.6.63</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Paso 2: Dependencias -->
+<div class="section">
+  <div class="section-label">Paso 2 — Subir dependencias</div>
+  <div class="nav-path">
+    <span class="nav-step">Scripting</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step">Scripts</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step">Install-IMPRESIONUP</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Dependencias</span>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px;">Agrega estos archivos como dependencias del script. KACE los copiará a <code>$(KACE_DEPENDENCY_DIR)</code> en cada equipo.</p>
+
+  <div class="file-list">
+    <div><span class="f-main">install-impresionup-kace.ps1</span> &nbsp;<span class="f-note">← el script principal</span></div>
+    <div><span class="f-main">OEMSETUP.INF</span> &nbsp;<span class="f-note">← driver Kyocera (requerido)</span></div>
+    <div style="color:#484F5E;">... (resto de archivos de Kyocera_64bit\) &nbsp;<span class="f-note">← todos los archivos de la carpeta</span></div>
+  </div>
+
+  <div class="warn">
+    <div class="label">Importante</div>
+    Sube <strong>todos</strong> los archivos de <code>Kyocera_64bit\</code> — no solo el OEMSETUP.INF. El driver necesita sus DLLs y archivos auxiliares para instalarse correctamente.
+  </div>
+</div>
+
+<!-- Paso 3: Configurar tarea -->
+<div class="section">
+  <div class="section-label">Paso 3 — Configurar la tarea</div>
+  <div class="nav-path">
+    <span class="nav-step">Install-IMPRESIONUP</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Tareas</span>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px;">Configura las secciones <strong>Verificar</strong> y <strong>Correctamente</strong> de la tarea:</p>
+
+  <div class="step">
+    <div class="step-num">A</div>
+    <div>
+      <div class="step-action">Sección: Verificar</div>
+      <div class="step-detail">Comprueba que el archivo de driver llegó correctamente al equipo antes de ejecutar el script.</div>
+      <table class="config-table">
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Acción</td><td><code>Verify File Exists</code></td></tr>
+          <tr><td>Archivo</td><td><code>$(KACE_DEPENDENCY_DIR)\OEMSETUP.INF</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">B</div>
+    <div>
+      <div class="step-action">Sección: Correctamente</div>
+      <div class="step-detail">Se ejecuta si la verificación fue exitosa. Lanza el script PowerShell en el equipo.</div>
+      <table class="config-table" style="margin-bottom:8px;">
+        <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Acción</td><td><code>Launch a program</code></td></tr>
+          <tr><td>Archivo</td><td><code>$(CMD)</code></td></tr>
+          <tr><td>Tiempo de espera</td><td><code>300</code> segundos</td></tr>
+          <tr><td>Ejecutar como</td><td><code>Local System</code></td></tr>
+        </tbody>
+      </table>
+      <div class="copy-block">
+        <span class="copy-label">Parámetros — copia exactamente</span>
+        /c PowerShell.exe -ExecutionPolicy Bypass -NonInteractive -File <span class="var">"$(KACE_DEPENDENCY_DIR)\install-impresionup-kace.ps1"</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <div class="label">Nota</div>
+    La sección <strong>Corrección</strong> puede dejarse vacía — si la verificación falla (no encuentra OEMSETUP.INF), el script no se ejecuta y KACE registra el fallo con exit code 1.
+  </div>
+</div>
+
+<!-- Paso 4: Asignar equipos -->
+<div class="section">
+  <div class="section-label">Paso 4 — Asignar equipos objetivo</div>
+  <div class="nav-path">
+    <span class="nav-step">Install-IMPRESIONUP</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Etiquetas de máquina</span>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted);">Selecciona la etiqueta o grupo de equipos donde se instalará IMPRESIONUP. Guarda el script después de asignar.</p>
+</div>
+
+<!-- Paso 5: Ejecutar -->
+<div class="section">
+  <div class="section-label">Paso 5 — Ejecutar el despliegue</div>
+  <div class="nav-path">
+    <span class="nav-step">Scripting</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step">Scripts</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Ejecutar ahora</span>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px;">Selecciona <strong>Install-IMPRESIONUP</strong> en la lista → <strong>Seleccionar acción → Ejecutar ahora</strong>. El script se desplegará en todos los equipos de la etiqueta asignada en cuanto el agente KACE haga check-in.</p>
+  <div class="note">
+    <div class="label">Tiempo de check-in</div>
+    El agente KACE hace check-in cada 4–8 horas por defecto. Para ejecución inmediata, fuerza el check-in desde el equipo con el agente KACE o ajusta el intervalo en la configuración.
+  </div>
+</div>
+
+<!-- Paso 6: Monitorear -->
+<div class="section">
+  <div class="section-label">Paso 6 — Verificar resultados</div>
+  <div class="nav-path">
+    <span class="nav-step">Scripting</span>
+    <span class="nav-sep">›</span>
+    <span class="nav-step active">Script Logs</span>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px;">Filtra por <strong>Install-IMPRESIONUP</strong>. La columna <strong>Exit Code</strong> indica el resultado por equipo:</p>
+
+  <div class="exit-codes">
+    <div class="exit-badge">
+      <div class="exit-code ok">0</div>
+      <div class="exit-desc"><strong>Éxito</strong><br>IMPRESIONUP instalada correctamente en el equipo</div>
+    </div>
+    <div class="exit-badge">
+      <div class="exit-code err">1</div>
+      <div class="exit-desc"><strong>Error</strong><br>Revisar el log en <code>C:\ProgramData\KaceScripts\logs\</code> del equipo afectado</div>
+    </div>
+  </div>
+
+  <p style="font-size:13.5px;color:var(--muted);margin:12px 0 8px;">Para diagnóstico detallado, accede al equipo y abre el archivo de log:</p>
+  <div class="copy-block">
+    <span class="copy-label">Ruta del log en el equipo</span>
+    <span class="val">C:\ProgramData\KaceScripts\logs\impresionup_</span><span class="var">&lt;NOMBRE-EQUIPO&gt;</span><span class="val">_</span><span class="var">&lt;fecha_hora&gt;</span><span class="val">.log</span>
+  </div>
+
+  <p style="font-size:13px;color:var(--muted);margin-top:10px;margin-bottom:8px;">Ejemplo de log exitoso:</p>
+  <div class="log-preview">
+    <span class="time">2026-06-23 14:30:01</span> <span class="info">[INFO] === Inicio instalación IMPRESIONUP — PC-SALON-A01 ===</span><br>
+    <span class="time">2026-06-23 14:30:02</span> <span class="ok">[OK]   Driver encontrado</span><br>
+    <span class="time">2026-06-23 14:30:04</span> <span class="ok">[OK]   Driver registrado: Kyocera TASKalfa MZ2501ci KX</span><br>
+    <span class="time">2026-06-23 14:30:05</span> <span class="ok">[OK]   Puerto LPR creado correctamente</span><br>
+    <span class="time">2026-06-23 14:30:07</span> <span class="ok">[OK]   Impresora 'IMPRESIONUP' instalada correctamente</span><br>
+    <span class="time">2026-06-23 14:30:07</span> <span class="ok">[OK]   Verificación final: 'IMPRESIONUP' presente en el sistema</span><br>
+    <span class="time">2026-06-23 14:30:07</span> <span class="info">[INFO] === Instalación completada exitosamente en PC-SALON-A01 ===</span>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <span>TI · Universidad Panamericana · Quest KACE SMA 15.0 · install-impresionup-kace.ps1 v1.0</span>
+  <span>github.com/Isra-up/scripts-win</span>
+</div>
