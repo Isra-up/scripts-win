@@ -2,22 +2,29 @@
   Propósito  : Instala la cola de impresión CCESTUDIANTES — versión KACE SMA
   Impresora  : Kyocera TASKalfa MZ2501ci KX
   IP         : 10.1.6.63  |  Protocolo: LPR  |  Cola: CCESTUDIANTES
-  Despliegue : Quest KACE SMA — Online KScript
+  Despliegue : Quest KACE SMA — Online KScript (Get-Content + scriptblock)
   Contexto   : Ejecuta como SYSTEM (no como usuario)
   Autor      : TI - Universidad Panamericana / FixPC Technology
 #>
+
+$ErrorActionPreference = "Stop"
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 $PrinterIP   = "10.1.6.63"
 $PortName    = "CCESTUDIANTES"
 $PrinterName = "CCESTUDIANTES"
 $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
+$QueueName   = "CCESTUDIANTES"
 
-# Driver disponible en recurso compartido — se extrae localmente en runtime
-$SharePath   = "\\10.1.6.107\temporal$\Impresion-CC"
-$ZipPath     = "$SharePath\Kyocera_MZ2501ci.zip"
-$ExtractDir  = "C:\Windows\Temp\Kyocera_64bit"
-$DriverInfPath = Join-Path $ExtractDir "OEMSETUP.INF"
+# Ruta del ZIP — usa $PSScriptRoot si está disponible (ejecución directa),
+# si no usa la ruta del share (ejecución vía scriptblock desde KACE)
+if ($PSScriptRoot -and $PSScriptRoot -ne "") {
+    $ZipFile = Join-Path $PSScriptRoot "Kyocera_MZ2501ci.zip"
+} else {
+    $ZipFile = "\\10.1.6.107\temporal$\Impresion-CC\Kyocera_MZ2501ci.zip"
+}
+
+$ExtractPath = "C:\ProgramData\Kyocera"
 
 # Log por equipo
 $LogDir  = "C:\ProgramData\KaceScripts\logs"
@@ -30,8 +37,8 @@ function Log {
     $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$level] $msg"
     Add-Content -Path $LogFile -Value $line -ErrorAction SilentlyContinue
 }
-function LogOK   { param([string]$m) Log $m "OK"    }
-function LogWarn { param([string]$m) Log $m "WARN"  }
+function LogOK   { param([string]$m) Log $m "OK"   }
+function LogWarn { param([string]$m) Log $m "WARN" }
 function LogFail {
     param([string]$m)
     Log $m "ERROR"
@@ -43,101 +50,93 @@ function LogFail {
 # ── Inicio ─────────────────────────────────────────────────────────────────────
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
 Log "=== Inicio instalación CCESTUDIANTES — $env:COMPUTERNAME ==="
-Log "Share               : $SharePath"
-Log "ZIP del driver      : $ZipPath"
+Log "ZIP : $ZipFile"
 
-# ── 1. Verificar ZIP ───────────────────────────────────────────────────────────
-Log "Verificando ZIP de driver..."
-if (-not (Test-Path $ZipPath)) {
-    LogFail "No se encontró: $ZipPath — verifica que Kyocera_64bit.zip esté subido como dependencia en KACE"
-}
-LogOK "ZIP encontrado"
+# ── 1. Extraer driver ──────────────────────────────────────────────────────────
+Log "Verificando ZIP..."
+if (-not (Test-Path $ZipFile)) { LogFail "No se encontró: $ZipFile" }
 
-# ── 2. Extraer ZIP ─────────────────────────────────────────────────────────────
-Log "Extrayendo driver en $ExtractDir ..."
-if (Test-Path $ExtractDir) { Remove-Item $ExtractDir -Recurse -Force }
+if (-not (Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force | Out-Null }
+Expand-Archive -Path $ZipFile -DestinationPath $ExtractPath -Force
+LogOK "ZIP extraído en $ExtractPath"
+
+$DriverINF = Get-ChildItem -Path $ExtractPath -Recurse -Filter "OEMSETUP.inf" | Select-Object -First 1
+if (-not $DriverINF) { LogFail "OEMSETUP.inf no encontrado tras extracción" }
+LogOK "INF encontrado: $($DriverINF.FullName)"
+
+# ── 2. Instalar certificado del driver ────────────────────────────────────────
 try {
-    Expand-Archive -Path $ZipPath -DestinationPath $ExtractDir -Force
-    LogOK "ZIP extraído correctamente"
+    if ($DriverINF.DirectoryName) {
+        $CatalogFile = Get-ChildItem -Path $DriverINF.DirectoryName -Filter "*.cat" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($CatalogFile -and $CatalogFile.FullName -ne "") {
+            $Cert = (Get-AuthenticodeSignature $CatalogFile.FullName).SignerCertificate
+            if ($Cert) {
+                $Store = New-Object System.Security.Cryptography.X509Certificates.X509Store("TrustedPublisher", "LocalMachine")
+                $Store.Open("ReadWrite")
+                $Store.Add($Cert)
+                $Store.Close()
+                LogOK "Certificado instalado"
+            }
+        }
+    }
 } catch {
-    LogFail "Error al extraer ZIP: $($_.Exception.Message)"
+    LogWarn "Certificado omitido: $($_.Exception.Message)"
 }
 
-if (-not (Test-Path $DriverInfPath)) {
-    LogFail "OEMSETUP.INF no encontrado tras extracción — verifica que el ZIP contenga los archivos en la raíz (sin subcarpeta)"
+# ── 3. Instalar driver ────────────────────────────────────────────────────────
+if (-not (Get-PrinterDriver -Name $DriverName -ErrorAction SilentlyContinue)) {
+    Log "Instalando driver con pnputil..."
+    pnputil.exe /add-driver $DriverINF.FullName /install
+    Start-Sleep -Seconds 15
+    Add-PrinterDriver -Name $DriverName
+    Start-Sleep -Seconds 15
+    LogOK "Driver instalado"
+} else {
+    LogOK "Driver ya presente: $DriverName"
 }
 
-# ── 3. Instalar driver en el almacén de Windows ────────────────────────────────
-Log "Instalando driver con pnputil..."
-$pnpOut = pnputil.exe /add-driver $DriverInfPath /install 2>&1
-Log "pnputil: $pnpOut"
-if ($LASTEXITCODE -ne 0) {
-    LogWarn "pnputil exit code $LASTEXITCODE — puede ser normal si el driver ya estaba instalado"
+if (-not (Get-PrinterDriver -Name $DriverName -ErrorAction SilentlyContinue)) {
+    LogFail "No fue posible instalar el driver"
 }
 
-try {
-    Add-PrinterDriver -Name $DriverName -ErrorAction Stop
-    LogOK "Driver registrado: $DriverName"
-} catch {
-    LogWarn "Add-PrinterDriver: $($_.Exception.Message) — continuando"
-}
-
-# ── 4. Crear puerto TCP/IP con protocolo LPR ───────────────────────────────────
-Log "Creando puerto LPR '$PortName' -> $PrinterIP ..."
-if (Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue) {
-    Log "Puerto existente detectado, eliminando para recrear..."
-    Remove-PrinterPort -Name $PortName -ErrorAction SilentlyContinue
-}
-
-try {
-    $portClass = [wmiclass]"Win32_TCPIpPrinterPort"
-    $port = $portClass.CreateInstance()
-    $port.Name        = $PortName
-    $port.HostAddress = $PrinterIP
-    $port.Protocol    = 2          # 1=RAW, 2=LPR
-    $port.Queue       = $PortName  # Nombre de cola LPR
-    $port.DoubleSpool = $true      # Recuento de bytes LPR habilitado
-    $port.Put() | Out-Null
-    LogOK "Puerto LPR creado correctamente"
-} catch {
-    LogFail "Error al crear puerto: $($_.Exception.Message)"
-}
+# ── 4. Reiniciar Spooler y limpiar colas ──────────────────────────────────────
+Log "Reiniciando Spooler..."
+Stop-Service Spooler -Force
+Remove-Item "C:\Windows\System32\spool\PRINTERS\*" -Force -Recurse -ErrorAction SilentlyContinue
+Start-Service Spooler
+LogOK "Spooler reiniciado"
 
 # ── 5. Eliminar colas anteriores ──────────────────────────────────────────────
-$colasAEliminar = @("IMPRESION_UP", "CC_COLOR", "CC1_BN", "CC2_COLOR", "CC3_BN", "CC4_BN")
+$colasAEliminar = @("IMPRESION_UP", "CC_COLOR", "CC1_BN", "CC2_COLOR", "CC3_BN", "CC4_BN", "CCESTUDIANTES")
 foreach ($cola in $colasAEliminar) {
     if (Get-Printer -Name $cola -ErrorAction SilentlyContinue) {
-        LogWarn "Cola '$cola' detectada, eliminando..."
+        LogWarn "Eliminando cola '$cola'..."
         Remove-Printer -Name $cola -ErrorAction SilentlyContinue
         LogOK "Cola '$cola' eliminada"
     }
 }
 
-# ── 6. Eliminar impresora previa si existe ─────────────────────────────────────
-if (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue) {
-    Log "Impresora previa detectada, eliminando..."
-    Remove-Printer -Name $PrinterName -ErrorAction SilentlyContinue
+# ── 6. Crear puerto LPR ───────────────────────────────────────────────────────
+if (-not (Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue)) {
+    Log "Creando puerto LPR '$PortName'..."
+    $PrnPortScript = Get-ChildItem "$env:windir\System32\Printing_Admin_Scripts" -Recurse -Filter "prnport.vbs" | Select-Object -First 1
+    if (-not $PrnPortScript) { LogFail "No se encontró prnport.vbs" }
+    cscript.exe "$($PrnPortScript.FullName)" -a -r $PortName -h $PrinterIP -o lpr -q $QueueName -2e
+    LogOK "Puerto LPR creado"
+} else {
+    LogOK "Puerto '$PortName' ya existe"
 }
 
-# ── 7. Agregar impresora ───────────────────────────────────────────────────────
-Log "Agregando impresora '$PrinterName'..."
-try {
-    Add-Printer -Name $PrinterName -DriverName $DriverName -PortName $PortName -ErrorAction Stop
-    LogOK "Impresora '$PrinterName' instalada correctamente"
-} catch {
-    LogFail "Error al agregar impresora: $($_.Exception.Message)"
-}
+# ── 7. Crear impresora ────────────────────────────────────────────────────────
+Log "Creando impresora '$PrinterName'..."
+Add-Printer -Name $PrinterName -DriverName $DriverName -PortName $PortName
+LogOK "Impresora '$PrinterName' creada"
 
 # ── Verificación final ────────────────────────────────────────────────────────
-$installed = Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue
-if (-not $installed) {
+if (-not (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue)) {
     LogFail "La impresora no aparece en el sistema tras la instalación"
 }
 LogOK "Verificación final: '$PrinterName' presente en el sistema"
-
-# ── Limpieza ──────────────────────────────────────────────────────────────────
-Remove-Item $ExtractDir -Recurse -Force -ErrorAction SilentlyContinue
-Log "Carpeta temporal eliminada: $ExtractDir"
 
 # ── Fin ────────────────────────────────────────────────────────────────────────
 Log "=== Instalación completada exitosamente en $env:COMPUTERNAME ==="
