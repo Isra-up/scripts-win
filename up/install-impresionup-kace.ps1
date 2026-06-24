@@ -13,8 +13,10 @@ $PortName    = "IMPRESIONUP"
 $PrinterName = "IMPRESIONUP"
 $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
 
-# El driver se sube como dependencia en KACE — todos los archivos quedan flat en este directorio
-$DriverInfPath = Join-Path $env:KACE_DEPENDENCY_DIR "OEMSETUP.INF"
+# El driver se sube como un solo ZIP en KACE — el script lo extrae en runtime
+$ZipPath     = Join-Path $env:KACE_DEPENDENCY_DIR "Kyocera_64bit.zip"
+$ExtractDir  = "C:\Windows\Temp\Kyocera_64bit"
+$DriverInfPath = Join-Path $ExtractDir "OEMSETUP.INF"
 
 # Log por equipo
 $LogDir  = "C:\ProgramData\KaceScripts\logs"
@@ -41,16 +43,30 @@ function LogFail {
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
 Log "=== Inicio instalación IMPRESIONUP — $env:COMPUTERNAME ==="
 Log "KACE_DEPENDENCY_DIR : $env:KACE_DEPENDENCY_DIR"
-Log "Driver INF          : $DriverInfPath"
+Log "ZIP del driver      : $ZipPath"
 
-# ── 1. Verificar INF ───────────────────────────────────────────────────────────
-Log "Verificando archivo de driver..."
-if (-not (Test-Path $DriverInfPath)) {
-    LogFail "No se encontró: $DriverInfPath — verifica que OEMSETUP.INF esté subido como dependencia en KACE"
+# ── 1. Verificar ZIP ───────────────────────────────────────────────────────────
+Log "Verificando ZIP de driver..."
+if (-not (Test-Path $ZipPath)) {
+    LogFail "No se encontró: $ZipPath — verifica que Kyocera_64bit.zip esté subido como dependencia en KACE"
 }
-LogOK "Driver encontrado"
+LogOK "ZIP encontrado"
 
-# ── 2. Instalar driver en el almacén de Windows ────────────────────────────────
+# ── 2. Extraer ZIP ─────────────────────────────────────────────────────────────
+Log "Extrayendo driver en $ExtractDir ..."
+if (Test-Path $ExtractDir) { Remove-Item $ExtractDir -Recurse -Force }
+try {
+    Expand-Archive -Path $ZipPath -DestinationPath $ExtractDir -Force
+    LogOK "ZIP extraído correctamente"
+} catch {
+    LogFail "Error al extraer ZIP: $($_.Exception.Message)"
+}
+
+if (-not (Test-Path $DriverInfPath)) {
+    LogFail "OEMSETUP.INF no encontrado tras extracción — verifica que el ZIP contenga los archivos en la raíz (sin subcarpeta)"
+}
+
+# ── 3. Instalar driver en el almacén de Windows ────────────────────────────────
 Log "Instalando driver con pnputil..."
 $pnpOut = pnputil.exe /add-driver $DriverInfPath /install 2>&1
 Log "pnputil: $pnpOut"
@@ -65,7 +81,7 @@ try {
     LogWarn "Add-PrinterDriver: $($_.Exception.Message) — continuando"
 }
 
-# ── 3. Crear puerto TCP/IP con protocolo LPR ───────────────────────────────────
+# ── 4. Crear puerto TCP/IP con protocolo LPR ───────────────────────────────────
 Log "Creando puerto LPR '$PortName' -> $PrinterIP ..."
 if (Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue) {
     Log "Puerto existente detectado, eliminando para recrear..."
@@ -86,20 +102,20 @@ try {
     LogFail "Error al crear puerto: $($_.Exception.Message)"
 }
 
-# ── 4. Eliminar cola anterior IMPRESION_UP (nombre legacy) ────────────────────
+# ── 5. Eliminar cola anterior IMPRESION_UP (nombre legacy) ────────────────────
 if (Get-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue) {
     LogWarn "Cola legacy 'IMPRESION_UP' detectada, eliminando..."
     Remove-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue
     LogOK "Cola legacy eliminada"
 }
 
-# ── 5. Eliminar impresora previa si existe ─────────────────────────────────────
+# ── 6. Eliminar impresora previa si existe ─────────────────────────────────────
 if (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue) {
     Log "Impresora previa detectada, eliminando..."
     Remove-Printer -Name $PrinterName -ErrorAction SilentlyContinue
 }
 
-# ── 6. Agregar impresora ───────────────────────────────────────────────────────
+# ── 7. Agregar impresora ───────────────────────────────────────────────────────
 Log "Agregando impresora '$PrinterName'..."
 try {
     Add-Printer -Name $PrinterName -DriverName $DriverName -PortName $PortName -ErrorAction Stop
@@ -114,6 +130,10 @@ if (-not $installed) {
     LogFail "La impresora no aparece en el sistema tras la instalación"
 }
 LogOK "Verificación final: '$PrinterName' presente en el sistema"
+
+# ── Limpieza ──────────────────────────────────────────────────────────────────
+Remove-Item $ExtractDir -Recurse -Force -ErrorAction SilentlyContinue
+Log "Carpeta temporal eliminada: $ExtractDir"
 
 # ── Fin ────────────────────────────────────────────────────────────────────────
 Log "=== Instalación completada exitosamente en $env:COMPUTERNAME ==="
