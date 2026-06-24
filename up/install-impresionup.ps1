@@ -64,7 +64,15 @@ try {
     Fail $_.Exception.Message
 }
 
-# ── 4. Eliminar impresora previa si existe ─────────────────────────────────────
+# ── 4. Eliminar cola anterior IMPRESION_UP (nombre legacy) ────────────────────
+Step "Verificando cola anterior 'IMPRESION_UP'..."
+if (Get-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue) {
+    Warn "Cola legacy 'IMPRESION_UP' encontrada, se eliminará."
+    Remove-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue
+}
+OK
+
+# ── 5. Eliminar impresora previa si existe ─────────────────────────────────────
 Step "Verificando instalación previa de '$PrinterName'..."
 if (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue) {
     Warn "Impresora existente encontrada, se eliminará."
@@ -72,7 +80,7 @@ if (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue) {
 }
 OK
 
-# ── 5. Agregar la impresora ────────────────────────────────────────────────────
+# ── 6. Agregar la impresora ────────────────────────────────────────────────────
 Step "Agregando impresora '$PrinterName'..."
 try {
     Add-Printer -Name $PrinterName -DriverName $DriverName -PortName $PortName -ErrorAction Stop

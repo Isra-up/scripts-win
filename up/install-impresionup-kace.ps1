@@ -86,13 +86,20 @@ try {
     LogFail "Error al crear puerto: $($_.Exception.Message)"
 }
 
-# ── 4. Eliminar impresora previa si existe ─────────────────────────────────────
+# ── 4. Eliminar cola anterior IMPRESION_UP (nombre legacy) ────────────────────
+if (Get-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue) {
+    LogWarn "Cola legacy 'IMPRESION_UP' detectada, eliminando..."
+    Remove-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue
+    LogOK "Cola legacy eliminada"
+}
+
+# ── 5. Eliminar impresora previa si existe ─────────────────────────────────────
 if (Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue) {
     Log "Impresora previa detectada, eliminando..."
     Remove-Printer -Name $PrinterName -ErrorAction SilentlyContinue
 }
 
-# ── 5. Agregar impresora ───────────────────────────────────────────────────────
+# ── 6. Agregar impresora ───────────────────────────────────────────────────────
 Log "Agregando impresora '$PrinterName'..."
 try {
     Add-Printer -Name $PrinterName -DriverName $DriverName -PortName $PortName -ErrorAction Stop
@@ -101,7 +108,7 @@ try {
     LogFail "Error al agregar impresora: $($_.Exception.Message)"
 }
 
-# ── Verificación final ─────────────────────────────────────────────────────────
+# ── Verificación final ────────────────────────────────────────────────────────
 $installed = Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue
 if (-not $installed) {
     LogFail "La impresora no aparece en el sistema tras la instalación"
