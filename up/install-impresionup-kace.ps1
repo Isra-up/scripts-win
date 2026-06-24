@@ -1,7 +1,7 @@
 <#
-  Propósito  : Instala la cola de impresión IMPRESIONUP — versión KACE SMA
+  Propósito  : Instala la cola de impresión CCESTUDIANTES — versión KACE SMA
   Impresora  : Kyocera TASKalfa MZ2501ci KX
-  IP         : 10.1.6.63  |  Protocolo: LPR  |  Cola: IMPRESIONUP
+  IP         : 10.1.6.63  |  Protocolo: LPR  |  Cola: CCESTUDIANTES
   Despliegue : Quest KACE SMA — Online KScript
   Contexto   : Ejecuta como SYSTEM (no como usuario)
   Autor      : TI - Universidad Panamericana / FixPC Technology
@@ -9,8 +9,8 @@
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 $PrinterIP   = "10.1.6.63"
-$PortName    = "IMPRESIONUP"
-$PrinterName = "IMPRESIONUP"
+$PortName    = "CCESTUDIANTES"
+$PrinterName = "CCESTUDIANTES"
 $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
 
 # Driver disponible en recurso compartido — se extrae localmente en runtime
@@ -21,7 +21,7 @@ $DriverInfPath = Join-Path $ExtractDir "OEMSETUP.INF"
 
 # Log por equipo
 $LogDir  = "C:\ProgramData\KaceScripts\logs"
-$LogFile = "$LogDir\impresionup_$($env:COMPUTERNAME)_$(Get-Date -Format 'yyyyMMdd_HHmm').log"
+$LogFile = "$LogDir\ccestudiantes_$($env:COMPUTERNAME)_$(Get-Date -Format 'yyyyMMdd_HHmm').log"
 # ───────────────────────────────────────────────────────────────────────────────
 
 # ── Logger ─────────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ function LogFail {
 
 # ── Inicio ─────────────────────────────────────────────────────────────────────
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
-Log "=== Inicio instalación IMPRESIONUP — $env:COMPUTERNAME ==="
+Log "=== Inicio instalación CCESTUDIANTES — $env:COMPUTERNAME ==="
 Log "Share               : $SharePath"
 Log "ZIP del driver      : $ZipPath"
 
