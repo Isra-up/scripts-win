@@ -16,7 +16,7 @@ $QueueName   = "CCESTUDIANTES"
 # ARCHIVOS LOCALES KACE
 # ==========================================
 
-$ZipFile = "\\10.1.6.107\temporal$\Impresion-CC\Kyocera_MZ2501ci.zip"
+$ZipFile = "\\10.1.6.107\temporal$\Impresion\Kyocera_MZ2501ci.zip"
 
 $ExtractPath = "C:\ProgramData\Kyocera"
 
