@@ -13,8 +13,9 @@ $PortName    = "IMPRESIONUP"
 $PrinterName = "IMPRESIONUP"
 $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
 
-# El driver se sube como un solo ZIP en KACE — el script lo extrae en runtime
-$ZipPath     = Join-Path $env:KACE_DEPENDENCY_DIR "Kyocera_64bit.zip"
+# Driver disponible en recurso compartido — se extrae localmente en runtime
+$SharePath   = "\\10.1.6.107\temporal$\Impresion-CC"
+$ZipPath     = "$SharePath\Kyocera_64bit.zip"
 $ExtractDir  = "C:\Windows\Temp\Kyocera_64bit"
 $DriverInfPath = Join-Path $ExtractDir "OEMSETUP.INF"
 
@@ -42,7 +43,7 @@ function LogFail {
 # ── Inicio ─────────────────────────────────────────────────────────────────────
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
 Log "=== Inicio instalación IMPRESIONUP — $env:COMPUTERNAME ==="
-Log "KACE_DEPENDENCY_DIR : $env:KACE_DEPENDENCY_DIR"
+Log "Share               : $SharePath"
 Log "ZIP del driver      : $ZipPath"
 
 # ── 1. Verificar ZIP ───────────────────────────────────────────────────────────
