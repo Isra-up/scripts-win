@@ -15,7 +15,7 @@ $DriverName  = "Kyocera TASKalfa MZ2501ci KX"
 
 # Driver disponible en recurso compartido — se extrae localmente en runtime
 $SharePath   = "\\10.1.6.107\temporal$\Impresion-CC"
-$ZipPath     = "$SharePath\Kyocera_64bit.zip"
+$ZipPath     = "$SharePath\Kyocera_MZ2501ci.zip"
 $ExtractDir  = "C:\Windows\Temp\Kyocera_64bit"
 $DriverInfPath = Join-Path $ExtractDir "OEMSETUP.INF"
 
