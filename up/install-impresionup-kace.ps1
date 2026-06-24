@@ -103,11 +103,14 @@ try {
     LogFail "Error al crear puerto: $($_.Exception.Message)"
 }
 
-# ── 5. Eliminar cola anterior IMPRESION_UP (nombre legacy) ────────────────────
-if (Get-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue) {
-    LogWarn "Cola legacy 'IMPRESION_UP' detectada, eliminando..."
-    Remove-Printer -Name "IMPRESION_UP" -ErrorAction SilentlyContinue
-    LogOK "Cola legacy eliminada"
+# ── 5. Eliminar colas anteriores ──────────────────────────────────────────────
+$colasAEliminar = @("IMPRESION_UP", "CC_COLOR", "CC1_BN", "CC2_COLOR", "CC3_BN", "CC4_BN")
+foreach ($cola in $colasAEliminar) {
+    if (Get-Printer -Name $cola -ErrorAction SilentlyContinue) {
+        LogWarn "Cola '$cola' detectada, eliminando..."
+        Remove-Printer -Name $cola -ErrorAction SilentlyContinue
+        LogOK "Cola '$cola' eliminada"
+    }
 }
 
 # ── 6. Eliminar impresora previa si existe ─────────────────────────────────────
