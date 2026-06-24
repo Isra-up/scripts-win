@@ -337,7 +337,7 @@
     <div class="header-meta">
       <span>Kyocera TASKalfa MZ2501ci KX</span>
       <span>IP 10.1.6.63</span>
-      <span>Script v1.0 · 2026-06-23</span>
+      <span>Script v1.1 · 2026-06-24</span>
     </div>
   </div>
 </div>
@@ -350,7 +350,7 @@
       <thead><tr><th>Qué necesitas</th><th>Detalle</th></tr></thead>
       <tbody>
         <tr><td>Script PowerShell</td><td><code>install-impresionup-kace.ps1</code> <span class="required">requerido</span></td></tr>
-        <tr><td>Driver Kyocera</td><td>Todos los archivos de la carpeta <code>Kyocera_64bit\</code> incluyendo <code>OEMSETUP.INF</code> <span class="required">requerido</span></td></tr>
+        <tr><td>Driver Kyocera</td><td>Carpeta <code>Kyocera_64bit\</code> comprimida como <code>Kyocera_64bit.zip</code> — los archivos deben quedar en la raíz del ZIP, sin subcarpeta <span class="required">requerido</span></td></tr>
         <tr><td>Acceso a KACE</td><td>Cuenta con permisos de administrador en la consola KACE SMA</td></tr>
         <tr><td>Equipos objetivo</td><td>Etiqueta de máquina creada en KACE con los equipos donde se instalará</td></tr>
       </tbody>
@@ -397,17 +397,16 @@
     <span class="nav-step active">Dependencias</span>
   </div>
 
-  <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px;">Agrega estos archivos como dependencias del script. KACE los copiará a <code>$(KACE_DEPENDENCY_DIR)</code> en cada equipo.</p>
+  <p style="font-size:13.5px;color:var(--muted);margin-bottom:10px;">Agrega <strong>solo 2 archivos</strong> como dependencias. KACE los copiará a <code>$(KACE_DEPENDENCY_DIR)</code> en cada equipo. El script extrae el ZIP en runtime.</p>
 
   <div class="file-list">
     <div><span class="f-main">install-impresionup-kace.ps1</span> &nbsp;<span class="f-note">← el script principal</span></div>
-    <div><span class="f-main">OEMSETUP.INF</span> &nbsp;<span class="f-note">← driver Kyocera (requerido)</span></div>
-    <div style="color:#484F5E;">... (resto de archivos de Kyocera_64bit\) &nbsp;<span class="f-note">← todos los archivos de la carpeta</span></div>
+    <div><span class="f-main">Kyocera_64bit.zip</span> &nbsp;<span class="f-note">← todos los archivos del driver comprimidos</span></div>
   </div>
 
   <div class="warn">
-    <div class="label">Importante</div>
-    Sube <strong>todos</strong> los archivos de <code>Kyocera_64bit\</code> — no solo el OEMSETUP.INF. El driver necesita sus DLLs y archivos auxiliares para instalarse correctamente.
+    <div class="label">Cómo preparar el ZIP</div>
+    Abre la carpeta <code>Kyocera_64bit\</code>, selecciona <strong>todos los archivos</strong> (no la carpeta en sí) y comprime la selección. Verifica que <code>OEMSETUP.INF</code> quede en la raíz del ZIP — si queda dentro de una subcarpeta el script fallará.
   </div>
 </div>
 
@@ -431,7 +430,8 @@
         <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
         <tbody>
           <tr><td>Acción</td><td><code>Verify File Exists</code></td></tr>
-          <tr><td>Archivo</td><td><code>$(KACE_DEPENDENCY_DIR)\OEMSETUP.INF</code></td></tr>
+          <tr><td>Directorio</td><td><code>$(KACE_DEPENDENCY_DIR)</code></td></tr>
+          <tr><td>Archivo</td><td><code>Kyocera_64bit.zip</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -446,21 +446,22 @@
         <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
         <tbody>
           <tr><td>Acción</td><td><code>Launch a program</code></td></tr>
-          <tr><td>Archivo</td><td><code>$(CMD)</code></td></tr>
-          <tr><td>Tiempo de espera</td><td><code>300</code> segundos</td></tr>
+          <tr><td>Directorio</td><td><code>C:\Windows\System32\WindowsPowerShell\v1.0</code></td></tr>
+          <tr><td>Archivo</td><td><code>powershell.exe</code></td></tr>
+          <tr><td>Esperar finalización</td><td><code>Sí</code> <span class="required">obligatorio</span></td></tr>
           <tr><td>Ejecutar como</td><td><code>Local System</code></td></tr>
         </tbody>
       </table>
       <div class="copy-block">
         <span class="copy-label">Parámetros — copia exactamente</span>
-        /c PowerShell.exe -ExecutionPolicy Bypass -NonInteractive -File <span class="var">"$(KACE_DEPENDENCY_DIR)\install-impresionup-kace.ps1"</span>
+        -ExecutionPolicy Bypass -NonInteractive -File <span class="var">"$(KACE_DEPENDENCY_DIR)\install-impresionup-kace.ps1"</span>
       </div>
     </div>
   </div>
 
   <div class="note">
     <div class="label">Nota</div>
-    La sección <strong>Corrección</strong> puede dejarse vacía — si la verificación falla (no encuentra OEMSETUP.INF), el script no se ejecuta y KACE registra el fallo con exit code 1.
+    La sección <strong>Corrección</strong> puede dejarse vacía — si la verificación falla (no encuentra <code>Kyocera_64bit.zip</code>), el script no se ejecuta y KACE registra el fallo. Verifica que el ZIP esté subido correctamente en la pestaña Dependencias.
   </div>
 </div>
 
@@ -522,18 +523,19 @@
 
   <p style="font-size:13px;color:var(--muted);margin-top:10px;margin-bottom:8px;">Ejemplo de log exitoso:</p>
   <div class="log-preview">
-    <span class="time">2026-06-23 14:30:01</span> <span class="info">[INFO] === Inicio instalación IMPRESIONUP — PC-SALON-A01 ===</span><br>
-    <span class="time">2026-06-23 14:30:02</span> <span class="ok">[OK]   Driver encontrado</span><br>
-    <span class="time">2026-06-23 14:30:04</span> <span class="ok">[OK]   Driver registrado: Kyocera TASKalfa MZ2501ci KX</span><br>
-    <span class="time">2026-06-23 14:30:05</span> <span class="ok">[OK]   Puerto LPR creado correctamente</span><br>
-    <span class="time">2026-06-23 14:30:07</span> <span class="ok">[OK]   Impresora 'IMPRESIONUP' instalada correctamente</span><br>
-    <span class="time">2026-06-23 14:30:07</span> <span class="ok">[OK]   Verificación final: 'IMPRESIONUP' presente en el sistema</span><br>
-    <span class="time">2026-06-23 14:30:07</span> <span class="info">[INFO] === Instalación completada exitosamente en PC-SALON-A01 ===</span>
+    <span class="time">2026-06-24 14:30:01</span> <span class="info">[INFO] === Inicio instalación IMPRESIONUP — PC-SALON-A01 ===</span><br>
+    <span class="time">2026-06-24 14:30:02</span> <span class="ok">[OK]   ZIP encontrado</span><br>
+    <span class="time">2026-06-24 14:30:03</span> <span class="ok">[OK]   ZIP extraído correctamente</span><br>
+    <span class="time">2026-06-24 14:30:05</span> <span class="ok">[OK]   Driver registrado: Kyocera TASKalfa MZ2501ci KX</span><br>
+    <span class="time">2026-06-24 14:30:06</span> <span class="ok">[OK]   Puerto LPR creado correctamente</span><br>
+    <span class="time">2026-06-24 14:30:08</span> <span class="ok">[OK]   Impresora 'IMPRESIONUP' instalada correctamente</span><br>
+    <span class="time">2026-06-24 14:30:08</span> <span class="ok">[OK]   Verificación final: 'IMPRESIONUP' presente en el sistema</span><br>
+    <span class="time">2026-06-24 14:30:08</span> <span class="info">[INFO] === Instalación completada exitosamente en PC-SALON-A01 ===</span>
   </div>
 </div>
 
 <!-- Footer -->
 <div class="footer">
-  <span>TI · Universidad Panamericana · Quest KACE SMA 15.0 · install-impresionup-kace.ps1 v1.0</span>
+  <span>TI · Universidad Panamericana · Quest KACE SMA 15.0 · install-impresionup-kace.ps1 v1.1</span>
   <span>github.com/Isra-up/scripts-win</span>
 </div>
